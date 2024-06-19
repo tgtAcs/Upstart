@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+
+<div>
+    <marquee direction="left">Welcome to the beta testing of upstart, note this is just a beta test and features are not
+        complete --- This slot is reserved for announsments</marquee>
+</div>
+
+<div class="header">
+    <a href="/">DASHBOARD</a>
+    <a href="/strategies">STRATEGIES</a>
+    <a href="/setting">SETTING</a>
+    <div class="info-bar">
+        <div id="userName">Name: {{ account.Username }}</div>
+        <div id="userBalance">Balance: {{ account.Balance }}</div>
+        <div id="currentTime">Time: </div>
+        <div id="currentDate">Date: </div>
+    </div>
+    <script>
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('currentTime').textContent = 'Time: ' + now.toLocaleTimeString();
+            document.getElementById('currentDate').textContent = 'Date: ' + now.toLocaleDateString();
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+    </script>
+</div>
+
+<body>
+
+    <div class="container">
+        <div class="column">
+            <div class="box">
+                <h4>Holdings</h4>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Amount</th>
+                            <th>Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>BTC</td>
+                            <td>{{ holding }}</td>
+                            <td>{{ holdingOrice }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="box">
+                <h4>Current Plans</h4>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Balance</th>
+                            <th>Holding</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for plan in plans %}
+                        <tr>
+                            <td>{{ plan.name }}</td>
+                            <td>{{ plan.Balance }}</td>
+                            <td>{{ plan.Holding }}</td>
+                            <td>
+                                <button class="detailBtn" data-plan-name="{{ plan.name }}">Details</button>
+                                <button class="exitBtn" data-plan-name="{{ plan.name }}"
+                                    onclick="exitPlan('{{ plan.name }}')">Exit Now</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+
+        </div>
+
+
+        <div class="column">
+            <div class="box">
+                <h4>Chart</h4>
+                <img src="/static/chart.png" alt="Chart" style="width: 100%; height: 100%; object-fit: contain;">
+            </div>
+            <div class="box" id="action">
+                <h4>Plan Details</h4>
+                <p>Select a plan to view details.</p>
+            </div>
+        </div>
+
+        <div class="column">
+            <div class="box">
+                <h4>WatchList</h4>
+                <table>
+                    <tr>
+                        <th>Name</th>
+                        <th>Market Price</th>
+                    </tr>
+                    <tr>
+                        <td>BTC</td>
+                        <td id="marketPrice">{{ currentPrice }}</td>
+                        <script>
+                            function updateMarketPrice() {
+                                fetch('/currentPrice')
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        document.getElementById('marketPrice').textContent = data.currentPrice;
+                                    })
+                                    .catch(error => console.error('Error fetching market price:', error));
+                            }
+                            setInterval(updateMarketPrice, 3000);
+                            updateMarketPrice();
+                        </script>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="box">
+                <h4>New Plan</h4>
+                <label for="planName">Plan Name</label>
+                <input id="planName" type="text">
+
+                <label for="initialAmount">Initial Amount</label>
+                <input id="initialAmount" type="number" name="quantity" min="0">
+
+                <label for="safetyLine">Safety Line</label>
+                <input id="safetyLine" type="number" name="quantity" min="0">
+
+                <label for="strategySelection">Select Strategy</label>
+                <select id="strategySelection">
+                    <option value="Preset1">Preset1</option>
+                    <option value="Preset2">Preset2</option>
+                    <option value="Preset3">Preset3</option>
+                </select>
+
+                <button onclick="createNewPlan()">Create New Plan</button>
+            </div>
+
+            <script>
+                function isNumber(value) {
+                    return !isNaN(value) && value.trim() !== '';
+                }
+
+                function createNewPlan() {
+                    const planName = document.getElementById('planName').value;
+                    const initialAmount = document.getElementById('initialAmount').value;
+                    const safetyLine = document.getElementById('safetyLine').value;
+                    const strategy = document.getElementById('strategySelection').value;
+
+                    if (!planName) {
+                        alert("Plan Name cannot be empty");
+                        return;
+                    }
+
+                    if (!isNumber(initialAmount) || parseFloat(initialAmount) <= 0) {
+                        alert("Initial Amount must be a number greater than 0");
+                        return;
+                    }
+
+                    if (!isNumber(safetyLine) || parseFloat(safetyLine) <= 0 || parseFloat(safetyLine) > parseFloat(initialAmount)) {
+                        alert("Safety Line must be a number greater than 0 and less than or equal to Initial Amount");
+                        return;
+                    }
+
+                    fetch('/getPlanDetail?name=' + planName)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.error === 'Plan not found') {
+                                const newPlan = {
+                                    planName: planName,
+                                    initialAmount: parseFloat(initialAmount),
+                                    safetyLine: parseFloat(safetyLine),
+                                    strategy: strategy
+                                };
+
+                                fetch('/newPlan', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify(newPlan)
+                                })
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        if (data.message) {
+                                            alert(data.message);
+                                            location.reload();
+                                        } else if (data.error) {
+                                            alert(data.error);
+                                        }
+                                    })
+                                    .catch((error) => {
+                                        console.error('Error:', error);
+                                    });
+                            } else {
+                                alert("Plan Name already exists");
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error fetching plan details:', error);
+                        });
+                }
+            </script>
+
+
+        </div>
+</body>
+
+</html>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const buttons = document.querySelectorAll('.detailBtn');
+        const actionBox = document.getElementById('action');
+
+        buttons.forEach(button => {
+            button.addEventListener('click', function () {
+                const planName = this.dataset.planName;
+                fetchPlanDetails(planName);
+                // Refresh plan details every 3 seconds
+                setInterval(function () {
+                    fetchPlanDetails(planName);
+                }, 3000);
+            });
+        });
+
+        function fetchPlanDetails(planName) {
+            // Example fetch request, replace with actual implementation
+            fetch('/getPlanDetail?name=' + planName)
+                .then(response => response.json())
+                .then(data => {
+                    // Update action box content with plan details
+                    actionBox.innerHTML = `<h4>${planName} Details</h4>`;
+                    for (const key in data) {
+                        if (data.hasOwnProperty(key)) {
+                            actionBox.innerHTML += `<p><strong>${key}:</strong> ${data[key]}</p>`;
+                        }
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const exitButtons = document.querySelectorAll('.exitBtn');
+
+        exitButtons.forEach(button => {
+            button.addEventListener('click', function () {
+                const planName = this.dataset.planName;
+                exitPlan(planName);
+            });
+        });
+    });
+</script>
+
+<script>
+    function fetchFrameData() {
+        fetch('/frame')
+            .then(response => response.text())
+            .then(data => {
+                // Update the content of the frameSection with the data received from /frame
+                document.getElementById('frameSection').innerHTML = data;
+            })
+            .catch(error => console.error('Error fetching frame data:', error));
+
+        // Generate random interval duration between 1 and 5 seconds (1000 and 5000 milliseconds)
+        const randomInterval = Math.floor(Math.random() * 4000) + 1000;
+
+        // Call fetchFrameData again after the random interval
+        setTimeout(fetchFrameData, randomInterval);
+    }
+
+    // Call fetchFrameData initially
+    fetchFrameData();
+</script>
+
+<script>
+    function exitPlan(planName) {
+        // Fetch plan details using the getPlanDetail route with the planName
+        fetch('/getPlanDetail?name=' + planName)
+            .then(response => response.json())
+            .then(data => {
+                fetch('/sellPlan?name=' + planName)
+
+                const earnings = data.Balance - data.initAmount; // Changed 'data.initial' to 'data.initialAmount'
+                alert('You have earned ' + earnings.toFixed(2));
+                fetch('/exitPlan?name=' + planName)
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log(data.message);
+                        location.reload(); // Reload the page only after handling the exit plan response
+                    })
+                    .catch(error => console.error('Error:', error));
+            })
+            .catch(error => console.error('Error fetching plan details:', error));
+    }
+</script>

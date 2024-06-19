@@ -1,0 +1,14 @@
+[
+    {
+        "name": "preset1",
+        "code": "import btcData\nimport btcTransaction\ndef preset1():\n\tif btcData.getCurrentPrice > 70000:\n\t\tif btcData.getEma()[0] > btcData.getEma()[1]:\n\t\t\tbtcTransaction.buyMax()\n\t\telif btcData.getEma()[1] > btcData.getEma()[0]:\n\t\t\tbtcTransaction.sellMax()"
+    },
+    {
+        "name": "preset2",
+        "code": "import btcData\nimport btcTransaction\ndef preset1():\n    if btcData.getCurrentPrice() < 70000:\n\t\tif btcData.getEma()[0] > btcData.getEma()[1]:\n\t\t\tbtcTransaction.buyMax()\n\t\telif btcData.getEma()[1] > btcData.getEma()[0]:\n\t\t\tbtcTransaction.sellMax()"
+    },
+    {
+        "name": "preset3",
+        "code": "import btcData\nimport btcTransaction\ndef preset1():\n\tif btcData.getEma()[0] > btcData.getEma()[1]:\n\t\tbtcTransaction.buyMax()\n\telif btcData.getEma()[1] > btcData.getEma()[0]:\n\t\tbtcTransaction.sellMax()"
+    }
+]

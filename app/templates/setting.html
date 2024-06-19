@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Strategy</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+
+<div>
+    <marquee direction="left">Welcome to the beta testing of upstart, note this is just a beta test and features are not complete --- This slot is reserved for announsments</marquee>
+</div>
+
+<div class="header">
+    <a href="/">DASHBOARD</a>
+    <a href="/strategies">STRATEGIES</a>
+    <a href="/setting">SETTING</a>
+    <div class="info-bar">
+        <div id="userName">Name: {{ account.Username }}</div>
+        <div id="userBalance">Balance: {{ account.Balance }}</div>
+        <div id="currentTime">Time: </div>
+        <div id="currentDate">Date: </div>
+    </div>
+    <script>
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('currentTime').textContent = 'Time: ' + now.toLocaleTimeString();
+            document.getElementById('currentDate').textContent = 'Date: ' + now.toLocaleDateString();
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+    </script>    
+</div>
+
+
+<body>
+    <div class="container">
+
+        <div class="column">
+            <div class="box">
+                <h4>Money</h4>
+                <button>Add Money</button>
+                <button>Draw Money</button>
+            </div>
+        </div>
+
+
+        <div class="column">
+            <div class="box">
+                <h4>User</h4>
+                <button>Log out</button>
+
+            </div>
+        </div>
+        
+
+    </div>
+</body>
+</html>
+<script>
+    function fetchFrameData() {
+        fetch('/frame')
+            .then(response => response.text())
+            .then(data => {
+                // Update the content of the frameSection with the data received from /frame
+                document.getElementById('frameSection').innerHTML = data;
+            })
+            .catch(error => console.error('Error fetching frame data:', error));
+
+        // Generate random interval duration between 1 and 5 seconds (1000 and 5000 milliseconds)
+        const randomInterval = Math.floor(Math.random() * 4000) + 1000;
+
+        // Call fetchFrameData again after the random interval
+        setTimeout(fetchFrameData, randomInterval);
+    }
+
+    // Call fetchFrameData initially
+    fetchFrameData();
+</script>

@@ -1,0 +1,56 @@
+[
+    {
+        "name": "Plan A",
+        "initAmount": 1.5,
+        "Balance": 1.5,
+        "Holding": 0,
+        "strategy": "active"
+      },
+      {
+        "name": "Plan B",
+        "initAmount": 2.0,
+        "Balance": 2.0,
+        "Holding": 0,
+        "strategy": "active"
+      },
+      {
+        "name": "Plan C",
+        "initAmount": 0.75,
+        "Balance": 0.75,
+        "Holding": 0,
+        "strategy": "inactive"
+      },
+      {
+        "name": "Plan D",
+        "initAmount": 3.25,
+        "Balance": 3.25,
+        "Holding": 0,
+        "strategy": "active"
+      },
+      {
+        "name": "Plan E",
+        "initAmount": 1.0,
+        "Balance": 1.0,
+        "Holding": 0,
+        "strategy": "inactive"
+      }
+]
+{
+  "Username": "admin",
+  "Balance": 1000338.24,
+  "Holding": 1.0
+}
+[
+  {
+      "name": "preset1",
+      "code": "import btcData\nimport btcTransaction\ndef preset1():\n\tif btcData.getEma()[0] > btcData.getEma()[1]:\n\t\tbtcTransaction.buyMax()\n\telif btcData.getEma()[1] > btcData.getEma()[0]:\n\t\tbtcTransaction.sellMax()"
+  },
+  {
+      "name": "preset2",
+      "code": ""
+  },
+  {
+      "name": "preset3",
+      "code": ""
+  }
+]

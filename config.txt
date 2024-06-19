@@ -1,0 +1,29 @@
+Upstart
+│
+├── app
+│   ├── __init__.py
+│   ├── btcData.py
+│   ├── btcTransaction.py
+│   ├── routes.py
+│   └── historyPice.txt
+│
+├── HistoryPrice.txt
+│
+├── data
+│   ├── account.json
+│   └── activePlan.json
+│   └── history.json
+│   └── strategy.json
+│
+├── static
+│   ├── css
+│   │   └── styles.css
+│   └── js
+│       └── scripts.js
+│
+├── templates
+│   ├── dashboard.html
+│   ├── setting.html
+│   └── strategy.html
+│
+└── README.md

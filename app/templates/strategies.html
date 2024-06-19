@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Strategy</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/codemirror/5.48.2/codemirror.min.css">
+    <script src="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/codemirror/5.48.2/codemirror.min.js"></script>
+    <script
+        src="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/codemirror/5.48.2/mode/htmlmixed/htmlmixed.min.js"></script>
+    <script src="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/codemirror/5.48.2/mode/xml/xml.min.js"></script>
+    <script
+        src="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/codemirror/5.48.2/addon/edit/closetag.min.js"></script>
+    <script
+        src="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/codemirror/5.48.2/addon/edit/closebrackets.min.js"></script>
+
+</head>
+
+<div>
+    <marquee direction="left">Welcome to the beta testing of upstart, note this is just a beta test and features are not complete --- This slot is reserved for announsments</marquee>
+</div>
+
+<div class="header">
+    <a href="/">DASHBOARD</a>
+    <a href="/strategies">STRATEGIES</a>
+    <a href="/setting">SETTING</a>
+    <div class="info-bar">
+        <div id="userName">Name: {{ account.Username }}</div>
+        <div id="userBalance">Balance: {{ account.Balance }}</div>
+        <div id="currentTime">Time: </div>
+        <div id="currentDate">Date: </div>
+    </div>
+    <script>
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('currentTime').textContent = 'Time: ' + now.toLocaleTimeString();
+            document.getElementById('currentDate').textContent = 'Date: ' + now.toLocaleDateString();
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+    </script>
+</div>
+
+
+<body>
+    <div class="container">
+
+        <div class="column">
+            <div class="box">
+                <h4>Strategies</h4>
+                <div id="strategyButtons"></div>
+            </div>
+        </div>
+
+        <div class="column">
+            <div class="box">
+                <h4>Script Editor</h4>
+                <label id="codeName">Name of the code</label>
+
+                <div class="container-fluid pb-3">
+                    <div class="card">
+                        <div class="card-header">
+                            <button type="button" onclick="resetCode()"> Reset Code</button>
+                            <button type="button" onclick="saveCode()" id="saveCodeBtn">Save</button>
+
+                        </div>
+                        <div class="card-body" style="padding:0">
+                            <textarea class="form-control" id="textareaCode" name="textareaCode"
+                                style="display: none;"></textarea>
+                            <div class="CodeMirror cm-s-default" style="width: 100%; height: 500px;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <script>
+                    function resetCode() {
+                        var initCode = "import btcData\nimport btcTransaction\ndef preset1():\n\tif btcData.getEma()[0] > btcData.getEma()[1]:\n\t\tbtcTransaction.buyMax()\n\telif btcData.getEma()[1] > btcData.getEma()[0]:\n\t\tbtcTransaction.sellMax()";
+                        editor.getDoc().setValue(initCode);
+                    }
+
+                    function saveCode() {
+                        const codeNameLabel = document.getElementById('codeName');
+                        const codeName = codeNameLabel.textContent;
+                        const newCode = editor.getDoc().getValue();
+                        const existingStrategy = strategies.find(strategy => strategy.name === codeName);
+
+                        if (existingStrategy) 
+                        {
+                            existingStrategy.code = newCode;
+                            const xhr = new XMLHttpRequest();
+                            xhr.open("POST", "/update_strategy", true);
+                            xhr.setRequestHeader("Content-Type", "application/json");
+                            xhr.send(JSON.stringify({ name: codeName, code: newCode }));
+                        } else {
+                            alert('Error: Please select a strategy.');
+                        }
+                    }
+
+                    strategies = {{ strategy | safe }};
+
+                    const strategyButtonsContainer = document.getElementById('strategyButtons');
+
+                    strategies.forEach(strategy => {
+                        const button = document.createElement('button');
+                        button.textContent = strategy.name;
+                        button.addEventListener('click', () => {
+                            editor.getDoc().setValue(strategy.code);
+                            document.getElementById('codeName').textContent = strategy.name;
+                        });
+                        strategyButtonsContainer.appendChild(button);
+                    });
+
+                    var mixedMode = {
+                        name: "htmlmixed",
+                        scriptTypes: [{ matches: /\/x-handlebars-template|\/x-mustache/i, mode: null },
+                        { matches: /(text|application)\/(x-)?vb(a|script)/i, mode: "vbscript" }]
+                    };
+
+                    var editor = CodeMirror.fromTextArea(document.getElementById("textareaCode"), {
+                        mode: mixedMode,
+                        selectionPointer: true,
+                        lineNumbers: true,
+                        matchBrackets: true,
+                        indentUnit: 4,
+                        indentWithTabs: true
+                    });            
+                </script>
+            </div>
+
+        </div>
+
+        <div class="column">
+
+            <div class="box">
+                <h4>Chart</h4>
+                <img src="/static/chart.png" alt="Chart" style="width: 100%; height: 100%; object-fit: contain;">
+            </div>
+
+            <div class="box">
+                <h4>History</h4>
+            </div>
+        </div>
+
+    </div>
+</body>
+
+</html>
+<script>
+    function fetchFrameData() {
+        fetch('/frame')
+            .then(response => response.text())
+            .then(data => {
+                // Update the content of the frameSection with the data received from /frame
+                document.getElementById('frameSection').innerHTML = data;
+            })
+            .catch(error => console.error('Error fetching frame data:', error));
+
+        // Generate random interval duration between 1 and 5 seconds (1000 and 5000 milliseconds)
+        const randomInterval = Math.floor(Math.random() * 4000) + 1000;
+
+        // Call fetchFrameData again after the random interval
+        setTimeout(fetchFrameData, randomInterval);
+    }
+
+    // Call fetchFrameData initially
+    fetchFrameData();
+</script>
